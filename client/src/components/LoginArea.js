@@ -17,12 +17,15 @@ class LoginArea extends Component {
     this.setState({lastInput: e.target.value});
   }
   onLoginSuccess(data) {
+    let name = localStorage.getItem("username");
+    if (!name) localStorage.setItem("username", data);
     this.props.loginSuccess(data);
   }
   onLoginFailure(data) {
     this.setState({loginErrorMessage: data});
   }
   onLogoutSuccess() {
+    localStorage.removeItem("username");
     this.setState({loginErrorMessage: false});
     this.props.logoutSuccess();
   }

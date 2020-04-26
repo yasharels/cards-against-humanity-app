@@ -16,6 +16,8 @@ const store = createStore(rootReducer);
 
 sock.onopen = () => {
   store.dispatch({type: "SOCKET_CONNECTED"});
+  let name = localStorage.getItem("username");
+  if (name) sock.send(JSON.stringify({event: "login", payload: name}));
 };
 
 sock.messageHandlers = {};
