@@ -1,4 +1,4 @@
-exports.handleMessage = (socket, message, users, namedSockets, gameData) => {
+exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => {
   let data = message.payload;
   switch (message.event) {
     case 'login': {
@@ -30,11 +30,21 @@ exports.handleMessage = (socket, message, users, namedSockets, gameData) => {
       return socket.eventEmit('logoutFailure', 'You are not currently logged in.');
     }
     case 'getGameList': {
-      return socket.eventEmit('gameList', gameData);
+      return socket.eventEmit('gameList', gameRoomData);
     }
-    case 'getGameState': {
-      let gameState = gameData.find(game => game.id === parseInt(data));
-      return socket.eventEmit('gameState', gameState);
+    case 'joinGameRoom': {
+      let roomData = gameRoomData.find(room => room.id === parseInt(data));
+      roomData = Object.assign({}, roomData);
+      delete roomData.id;
+      return socket.eventEmit('gameRoomData', roomData);
+    }
+    case 'getGameData': {
+      let roomData = gameRoomData.find(room => room.id === parseInt(data));
+      return socket.eventEmit('gameData', roomData.gameData);
+    }
+    case 'getSetupData': {
+      let roomData = gameRoomData.find(room => room.id === parseInt(data));
+      return socket.eventEmit('gameSetupData', roomData.setupData);
     }
     default: return;
   }
