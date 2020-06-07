@@ -25,6 +25,9 @@ sock.messageHandlers = {};
 sock.on = (event, fct) => {
   sock.messageHandlers[event] = fct;
 }
+sock.off = event => {
+  delete sock.messageHandlers[event];
+}
 sock.onmessage = message => {
   let data = JSON.parse(message.data);
   let event = data.event;
