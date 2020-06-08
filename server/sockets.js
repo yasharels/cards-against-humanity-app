@@ -1,3 +1,5 @@
+const {defaultGamePoint, defaultIdleTimer} = require('./config');
+
 exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => {
   let data = message.payload;
   switch (message.event) {
@@ -45,6 +47,22 @@ exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => 
     case 'getSetupData': {
       let roomData = gameRoomData.find(room => room.id === parseInt(data));
       return socket.eventEmit('gameSetupData', roomData.setupData);
+    }
+    case 'createGame': {
+      if (!namedSockets.has(socket)) return socket.eventEmit('gameCreateFailure', 'You must be logged in to create a game.');
+      const newGameId = gameRoomData.length;
+      const newGameRoomData = {
+        id: newGameId,
+        host: namedSockets.get(socket),
+        setupData: {
+          idleTimer: defaultIdleTimer,
+          gamePoint: defaultGamePoint,
+          gamePass: null
+        },
+        scoreBoard: {}
+      };
+      gameRoomData.push(newGameRoomData);
+      return socket.eventEmit('gameRedirect', newGameId);
     }
     default: return;
   }
