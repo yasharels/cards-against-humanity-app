@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Game from './Game';
 import GameSetup from './GameSetup';
+import LoginArea from '../containers/LoginArea';
 
 export default class GameRoom extends Component {
   id = this.props.match.params.id;
@@ -39,6 +40,7 @@ export default class GameRoom extends Component {
   render() {
     return (
       <React.Fragment>
+        <LoginArea socket={this.props.socket} />
         {this.renderMainArea()}
         {this.state.scoreBoard ? <ScoreBoard scores={this.state.scoreBoard} /> : null}
       </React.Fragment>
