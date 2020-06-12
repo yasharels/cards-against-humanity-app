@@ -18,6 +18,7 @@ export default class GameRoom extends Component {
   }
 
   componentDidMount() {
+    this.props.socket.on('setupData', this.boundHandlers.dataHandler);
     this.props.socket.on('gameRoomData', this.boundHandlers.dataHandler);
     this.props.socket.on('gameStart', this.boundHandlers.gameStart);
     this.props.socket.on('gameEnd', this.boundHandlers.gameEnd);
@@ -31,7 +32,7 @@ export default class GameRoom extends Component {
 
   renderMainArea() {
     if (this.state.gameData) return <Game socket={this.props.socket} data={this.state.gameData} id={this.id} handler={this.boundHandlers.dataHandler} />;
-    else if (this.state.setupData) return <GameSetup socket={this.props.socket} initData={this.state.setupData} id={this.id} />;
+    else if (this.state.setupData) return <GameSetup socket={this.props.socket} data={this.state.setupData} id={this.id} handler={this.boundHandlers.dataHandler}/>;
     return null; // reached when no data has been received from the server yet
   }
 
