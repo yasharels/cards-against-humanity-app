@@ -18,8 +18,31 @@ export default class GameSetup extends Component {
   componentWillUnmount() {
     this.cleanup();
   }
-
+  renderGamePointDropdown() {
+    let options = [];
+    for (let i = 1; i <= 50; i++) {
+      if (i !== this.state.gamePoint) {
+        options.push(<option>{i}</option>)
+      }
+      else {
+        options.push(<option selected="selected">{i}</option>)
+      }
+    }
+    return options;
+  }
   render() {
-    return null;
+    const state = this.state;
+    return (
+      <React.Fragment>
+      <form>
+        <fieldset>
+          <legend>Game settings:</legend>
+          <label>Game point: <select>{this.renderGamePointDropdown()}</select></label>
+          <legend>Idle timer: {state.idleTimer ? state.idleTimer : "Unlimited"}</legend>
+          <label>Game password: <input type="text" /></label>
+        </fieldset>
+      </form>
+      </React.Fragment>
+    )
   }
 }
