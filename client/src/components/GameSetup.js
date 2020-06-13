@@ -14,14 +14,18 @@ export default class GameSetup extends Component {
   componentWillUnmount() {
     this.cleanup();
   }
+  handleGamePass(e) {
+    const pass = e.target.value;
+    if (pass) this.props.socket.send(JSON.stringify({event: 'setGamePass', payload: {id: this.props.id, pass}}));
+  }
   renderGamePointDropdown() {
     let options = [];
     for (let i = 1; i <= 50; i++) {
       if (i !== this.props.data.gamePoint) {
-        options.push(<option>{i}</option>)
+        options.push(<option>{i}</option>);
       }
       else {
-        options.push(<option selected="selected">{i}</option>)
+        options.push(<option selected="selected">{i}</option>);
       }
     }
     return options;
@@ -35,7 +39,7 @@ export default class GameSetup extends Component {
           <legend>Game settings:</legend>
           <label>Gamepoint: <select>{this.renderGamePointDropdown()}</select></label>
           <legend>Idle timer: {data.idleTimer || "Unlimited"}</legend>
-          <label>Game password: <input type="text" /></label>
+          <label>Game password: <input type="text" onBlur={this.handleGamePass.bind(this)}/></label>
         </fieldset>
       </form>
       </React.Fragment>

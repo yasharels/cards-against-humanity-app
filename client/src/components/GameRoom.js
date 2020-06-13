@@ -13,27 +13,34 @@ export default class GameRoom extends Component {
   };
 
   boundHandlers = {
-    dataHandler: dataHandler.bind(this),
+    roomDataHandler: roomDataHandler.bind(this),
+    gameDataHandler: gameDataHandler.bind(this),
     gameStart: gameStartHandler.bind(this),
     gameEnd: gameEndHandler.bind(this)
   }
 
   componentDidMount() {
-    this.props.socket.on('setupData', this.boundHandlers.dataHandler);
-    this.props.socket.on('gameRoomData', this.boundHandlers.dataHandler);
+    this.props.socket.on('gameRoomData', this.boundHandlers.roomDataHandler);
     this.props.socket.on('gameStart', this.boundHandlers.gameStart);
     this.props.socket.on('gameEnd', this.boundHandlers.gameEnd);
-    this.props.socket.send(JSON.stringify({event: 'joinGameRoom', payload: this.id}));
+    this.props.socket.send(JSON.stringify({event: 'joinGameRoom', payload: {id: this.id}}));
   }
   componentWillUnmount() {
     this.props.socket.off('gameRoomData');
     this.props.socket.off('gameStart');
     this.props.socket.off('gameEnd');
   }
-
+  gamePassPrompt = () => {
+    const makePrompt = () => {
+      const pass = prompt("Enter game password:");
+      this.props.socket.send(JSON.stringify({event: 'joinGameRoom', payload: {id: this.id, pass}}));
+    };
+    this.props.socket.on('gameAccessDenied', makePrompt);
+    makePrompt();
+  }
   renderMainArea() {
-    if (this.state.gameData) return <Game socket={this.props.socket} data={this.state.gameData} id={this.id} handler={this.boundHandlers.dataHandler} />;
-    else if (this.state.setupData) return <GameSetup socket={this.props.socket} data={this.state.setupData} id={this.id} handler={this.boundHandlers.dataHandler}/>;
+    if (this.state.gameData) return <Game socket={this.props.socket} data={this.state.gameData} id={this.id} handler={this.boundHandlers.gameDataHandler} />;
+    else if (this.state.setupData) return <GameSetup socket={this.props.socket} data={this.state.setupData} id={this.id} handler={this.boundHandlers.gameDataHandler}/>;
     return null; // reached when no data has been received from the server yet
   }
 
@@ -49,7 +56,11 @@ export default class GameRoom extends Component {
 
 }
 
-function dataHandler (data) {
+function roomDataHandler (data) {
+  if (data.needsGamePass) this.gamePassPrompt();
+  else this.setState(data);
+}
+function gameDataHandler (data) {
   this.setState(data);
 }
 function gameStartHandler (data) {

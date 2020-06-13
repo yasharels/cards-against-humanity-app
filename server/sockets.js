@@ -35,7 +35,16 @@ exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => 
       return socket.eventEmit('gameList', gameRoomData);
     }
     case 'joinGameRoom': {
-      let roomData = gameRoomData.find(room => room.id === parseInt(data));
+      let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
+      if (roomData.gamePass) {
+        if (!data.pass) return socket.eventEmit('gameRoomData', {needsGamePass: true});
+        if (data.pass === roomData.gamePass) {
+          roomData = Object.assign({}, roomData);
+          delete roomData.id;
+          return socket.eventEmit('gameRoomData', roomData);
+        }
+        return socket.eventEmit('gameAccessDenied');
+      }
       roomData = Object.assign({}, roomData);
       delete roomData.id;
       return socket.eventEmit('gameRoomData', roomData);
@@ -64,6 +73,13 @@ exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => 
       gameRoomData.push(newGameRoomData);
       return socket.eventEmit('gameRedirect', newGameId);
     }
+    case 'setGamePass': {
+      let {id, pass} = data;
+      let roomData = gameRoomData.find(room => room.id === parseInt(id));
+      if (namedSockets.get(socket) !== roomData.host) return;
+      else roomData.gamePass = pass;
+    }
+    break;
     default: return;
   }
 }
