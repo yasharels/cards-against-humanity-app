@@ -1,6 +1,6 @@
 const {defaultGamePoint, defaultIdleTimer} = require('./config');
 
-exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => {
+exports.handleMessage = (socket, message, users, namedSockets, gameRoomData, roomSockets) => {
   let data = message.payload;
   switch (message.event) {
     case 'login': {
@@ -39,14 +39,19 @@ exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => 
       if (roomData.gamePass) {
         if (!data.pass) return socket.eventEmit('gameRoomData', {needsGamePass: true});
         if (data.pass === roomData.gamePass) {
-          roomData = Object.assign({}, roomData);
+          roomData = {...roomData};
           delete roomData.id;
+          if (!roomSockets.has(data.id)) roomSockets.set(data.id, []);
+          roomSockets.get(data.id).push(socket);
           return socket.eventEmit('gameRoomData', roomData);
         }
         return socket.eventEmit('gameAccessDenied');
       }
-      roomData = Object.assign({}, roomData);
+      let roomDataCopy = {...roomData};
+      roomData = {...roomData};
       delete roomData.id;
+      if (!roomSockets.has(data.id)) roomSockets.set(data.id, []);
+      roomSockets.get(data.id).push(socket);
       return socket.eventEmit('gameRoomData', roomData);
     }
     case 'getGameData': {
@@ -85,12 +90,18 @@ exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => 
       if (roomData.host !== namedSockets.get(socket)) return;
       let isNumber = !isNaN(parseInt(data.timer));
       roomData.setupData.idleTimer =  isNumber ? parseInt(data.timer) : null;
+      roomSockets.get(data.id).forEach(socket => {
+        socket.eventEmit('gameSetupData', {idleTimer: roomData.setupData.idleTimer});
+      })
     }
     break;
     case 'gamePoint': {
       let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
       if (roomData.host !== namedSockets.get(socket)) return;
       roomData.setupData.gamePoint = parseInt(data.gamePoint);
+      roomSockets.get(data.id).forEach(socket => {
+        socket.eventEmit('gameSetupData', {gamePoint: roomData.setupData.gamePoint});
+      })
     }
     default: return;
   }

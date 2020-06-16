@@ -24,12 +24,13 @@ let gameRoomData = [];
 
 let users = new Map();
 let namedSockets = new Map();
+let roomSockets = new Map();
 
 server.on('connection', socket => {
   socket.eventEmit = (event, payload) => {
     socket.write(JSON.stringify({event, payload}));
   };
   socket.on('data', message => {
-    handleMessage(socket, JSON.parse(message), users, namedSockets, gameRoomData);
+    handleMessage(socket, JSON.parse(message), users, namedSockets, gameRoomData, roomSockets);
   });
 });

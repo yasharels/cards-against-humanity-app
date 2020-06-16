@@ -62,10 +62,14 @@ function roomDataHandler (data) {
   else this.setState(data);
 }
 function gameDataHandler (data) {
-  this.setState({gameData: data});
+  let state = {...this.state};
+  state.gameData = {...state.gameData, ...data};
+  this.setState(state);
 }
 function setupDataHandler (data) {
-  this.setState({setupData: data});
+  let state = {...this.state};
+  state.setupData = {...state.setupData, ...data};
+  this.setState(state);
 }
 function gameStartHandler (data) {
   this.setState({gameData: data});
