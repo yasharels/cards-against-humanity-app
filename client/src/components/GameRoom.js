@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Game from './Game';
-import GameSetup from './GameSetup';
+import GameSetup from '../containers/GameSetup';
 import LoginArea from '../containers/LoginArea';
 
 export default class GameRoom extends Component {
@@ -15,6 +15,7 @@ export default class GameRoom extends Component {
   boundHandlers = {
     roomDataHandler: roomDataHandler.bind(this),
     gameDataHandler: gameDataHandler.bind(this),
+    setupDataHandler: setupDataHandler.bind(this),
     gameStart: gameStartHandler.bind(this),
     gameEnd: gameEndHandler.bind(this)
   }
@@ -40,7 +41,7 @@ export default class GameRoom extends Component {
   }
   renderMainArea() {
     if (this.state.gameData) return <Game socket={this.props.socket} data={this.state.gameData} id={this.id} handler={this.boundHandlers.gameDataHandler} />;
-    else if (this.state.setupData) return <GameSetup socket={this.props.socket} data={this.state.setupData} id={this.id} handler={this.boundHandlers.gameDataHandler}/>;
+    else if (this.state.setupData) return <GameSetup socket={this.props.socket} data={{...this.state.setupData, host: this.state.host}} id={this.id} handler={this.boundHandlers.setupDataHandler}/>;
     return null; // reached when no data has been received from the server yet
   }
 
@@ -61,7 +62,10 @@ function roomDataHandler (data) {
   else this.setState(data);
 }
 function gameDataHandler (data) {
-  this.setState(data);
+  this.setState({gameData: data});
+}
+function setupDataHandler (data) {
+  this.setState({setupData: data});
 }
 function gameStartHandler (data) {
   this.setState({gameData: data});

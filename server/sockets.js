@@ -80,6 +80,18 @@ exports.handleMessage = (socket, message, users, namedSockets, gameRoomData) => 
       else roomData.gamePass = pass;
     }
     break;
+    case 'idleTimer': {
+      let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
+      if (roomData.host !== namedSockets.get(socket)) return;
+      let isNumber = !isNaN(parseInt(data.timer));
+      roomData.setupData.idleTimer =  isNumber ? parseInt(data.timer) : null;
+    }
+    break;
+    case 'gamePoint': {
+      let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
+      if (roomData.host !== namedSockets.get(socket)) return;
+      roomData.setupData.gamePoint = parseInt(data.gamePoint);
+    }
     default: return;
   }
 }
