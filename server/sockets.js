@@ -1,107 +1,107 @@
+const GameRoom = require('./GameRoom').GameRoom;
 const {defaultGamePoint, defaultIdleTimer} = require('./config');
 
-exports.handleMessage = (socket, message, users, namedSockets, gameRoomData, roomSockets) => {
+exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
   let data = message.payload;
   switch (message.event) {
     case 'login': {
       let user = users.get(data);
       if (!user) {
-        users.set(data, {sockets: [socket], Ip: socket.remoteAddress});
-        namedSockets.set(socket, data);
+        users.set(data, {sockets: [socket], Ip: socket.remoteAddress, gameRooms: []});
+        sockets.get(socket).name = data;
         return socket.eventEmit('loginSuccess', data);
       }
       if (user.Ip !== socket.remoteAddress) {
         return socket.eventEmit('loginFailure', `${data} is already in use. Please pick another name.`);
       }
-      users.set(data, {sockets: user.sockets.concat([socket]), Ip: socket.remoteAddress});
-      namedSockets.set(socket, data);
+      user.sockets.push(socket);
+      sockets.get(socket).name = data;
       return socket.eventEmit('loginSuccess', data);
     }
     case 'logout': {
-      if (namedSockets.has(socket)) {
-        let name = namedSockets.get(socket);
+      if (sockets.get(socket).name) {
+        let name = sockets.get(socket).name
         let userSockets = users.get(name).sockets;
         if (userSockets.length === 1) users.delete(name);
         else {
           let index = userSockets.indexOf(socket);
           userSockets.splice(index, 1);
         }
-        namedSockets.delete(socket);
+        sockets.get(socket).name = null;
         return socket.eventEmit('logoutSuccess');
       }
       return socket.eventEmit('logoutFailure', 'You are not currently logged in.');
     }
     case 'getGameList': {
-      return socket.eventEmit('gameList', gameRoomData);
+      let gameList = [];
+      gameRooms.forEach((room, id) => {
+        gameList.push({...{id}, ...room.getGameRoomData()});
+      });
+      return socket.eventEmit('gameList', gameList);
     }
     case 'joinGameRoom': {
-      let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
-      if (roomData.gamePass) {
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      if (room.gamePass) {
         if (!data.pass) return socket.eventEmit('gameRoomData', {needsGamePass: true});
-        if (data.pass === roomData.gamePass) {
-          roomData = {...roomData};
-          delete roomData.id;
-          if (!roomSockets.has(data.id)) roomSockets.set(data.id, []);
-          roomSockets.get(data.id).push(socket);
-          return socket.eventEmit('gameRoomData', roomData);
+        if (data.pass === room.gamePass) {
+          let userRooms = users.get(sockets.get(socket).name).gameRooms;
+          if (!userRooms.includes(id)) userRooms.push(id);
+          room.joinedSockets.push(socket);
+          return socket.eventEmit('gameRoomData', room.getGameRoomData());
         }
         return socket.eventEmit('gameAccessDenied');
       }
-      let roomDataCopy = {...roomData};
-      roomData = {...roomData};
-      delete roomData.id;
-      if (!roomSockets.has(data.id)) roomSockets.set(data.id, []);
-      roomSockets.get(data.id).push(socket);
-      return socket.eventEmit('gameRoomData', roomData);
+      let userRooms = users.get(sockets.get(socket).name).gameRooms;
+      if (!userRooms.includes(id)) userRooms.push(id);
+      room.joinedSockets.push(socket);
+      return socket.eventEmit('gameRoomData', room.getGameRoomData());
     }
     case 'getGameData': {
-      let roomData = gameRoomData.find(room => room.id === parseInt(data));
+      let room = gameRooms.get(parseInt(data));
       return socket.eventEmit('gameData', roomData.gameData);
     }
     case 'getSetupData': {
-      let roomData = gameRoomData.find(room => room.id === parseInt(data));
-      return socket.eventEmit('gameSetupData', roomData.setupData);
+      let room = gameRooms.get(parseInt(data));
+      return socket.eventEmit('gameSetupData', room.setupData);
     }
     case 'createGame': {
-      if (!namedSockets.has(socket)) return socket.eventEmit('gameCreateFailure', 'You must be logged in to create a game.');
-      const newGameId = gameRoomData.length;
-      const newGameRoomData = {
-        id: newGameId,
-        host: namedSockets.get(socket),
-        setupData: {
-          idleTimer: defaultIdleTimer,
-          gamePoint: defaultGamePoint,
-          gamePass: null
-        },
-        scoreBoard: {}
+      if (!sockets.get(socket).name) return socket.eventEmit('gameCreateFailure', 'You must be logged in to create a game.');
+      const newGameId = gameRooms.size + 1;
+      let setupData = {
+        idleTimer: defaultIdleTimer,
+        gamePoint: defaultGamePoint
       };
-      gameRoomData.push(newGameRoomData);
+      let room = new GameRoom(sockets.get(socket).name, setupData);
+      gameRooms.set(newGameId, room);
       return socket.eventEmit('gameRedirect', newGameId);
     }
     case 'setGamePass': {
       let {id, pass} = data;
-      let roomData = gameRoomData.find(room => room.id === parseInt(id));
-      if (namedSockets.get(socket) !== roomData.host) return;
-      else roomData.gamePass = pass;
+      let room = gameRooms.get(parseInt(id));
+      if (sockets.get(socket).name !== room.host) return;
+      else room.gamePass = pass;
     }
     break;
     case 'idleTimer': {
-      let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
-      if (roomData.host !== namedSockets.get(socket)) return;
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      if (room.host !== sockets.get(socket).name) return;
       let isNumber = !isNaN(parseInt(data.timer));
-      roomData.setupData.idleTimer =  isNumber ? parseInt(data.timer) : null;
-      roomSockets.get(data.id).forEach(socket => {
-        socket.eventEmit('gameSetupData', {idleTimer: roomData.setupData.idleTimer});
-      })
+      room.setupData.idleTimer =  isNumber ? parseInt(data.timer) : null;
+      room.joinedSockets.forEach(socket => {
+        socket.eventEmit('gameSetupData', {idleTimer: room.setupData.idleTimer});
+      });
     }
     break;
     case 'gamePoint': {
-      let roomData = gameRoomData.find(room => room.id === parseInt(data.id));
-      if (roomData.host !== namedSockets.get(socket)) return;
-      roomData.setupData.gamePoint = parseInt(data.gamePoint);
-      roomSockets.get(data.id).forEach(socket => {
-        socket.eventEmit('gameSetupData', {gamePoint: roomData.setupData.gamePoint});
-      })
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      if (room.host !== sockets.get(socket).name) return;
+      room.setupData.gamePoint = parseInt(data.gamePoint);
+      room.joinedSockets.forEach(socket => {
+        socket.eventEmit('gameSetupData', {gamePoint: room.setupData.gamePoint});
+      });
     }
     default: return;
   }

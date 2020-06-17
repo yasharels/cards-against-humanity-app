@@ -19,18 +19,32 @@ http.listen(80, () => {
   console.log('listening on port 80');
 });
 
-let gameRoomData = [];
+let gameRooms = new Map();
 
 
 let users = new Map();
-let namedSockets = new Map();
-let roomSockets = new Map();
+let sockets = new Map();
 
 server.on('connection', socket => {
+  sockets.set(socket, {
+    gameRooms: [], name: null
+  });
   socket.eventEmit = (event, payload) => {
     socket.write(JSON.stringify({event, payload}));
   };
   socket.on('data', message => {
-    handleMessage(socket, JSON.parse(message), users, namedSockets, gameRoomData, roomSockets);
+    handleMessage(socket, JSON.parse(message), users, sockets, gameRooms);
+  });
+  socket.on('close', () => {
+    for (const room of sockets.get(socket).gameRooms) gameRooms.get(room).removeSocket(socket);
+    let user = sockets.get(socket).name;
+    if (user) {
+      if (users.get(user).sockets.length === 1) users.delete(user);
+      else {
+        let index = users.get(user).sockets.indexOf(socket);
+        users.get(user).sockets.splice(index, 1);
+      }
+    }
+    sockets.delete(socket);
   });
 });
