@@ -36,7 +36,9 @@ server.on('connection', socket => {
     handleMessage(socket, JSON.parse(message), users, sockets, gameRooms);
   });
   socket.on('close', () => {
-    for (const room of sockets.get(socket).gameRooms) gameRooms.get(room).removeSocket(socket);
+    for (const room of sockets.get(socket).gameRooms) {
+      gameRooms.get(room).removeSocket(socket);
+    }
     let user = sockets.get(socket).name;
     if (user) {
       if (users.get(user).sockets.length === 1) users.delete(user);

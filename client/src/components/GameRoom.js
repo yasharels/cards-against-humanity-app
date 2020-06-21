@@ -9,13 +9,14 @@ export default class GameRoom extends Component {
   state = {
     gameData: null,
     setupInit: null,
-    scoreBoard: null
+    scoreBoard: null,
+    host: null
   };
 
   boundHandlers = {
     roomDataHandler: roomDataHandler.bind(this),
     gameDataHandler: gameDataHandler.bind(this),
-    setupDataHandler: setupDataHandler.bind(this),
+    gameOptionsHandler: gameOptionsHandler.bind(this),
     gameStart: gameStartHandler.bind(this),
     gameEnd: gameEndHandler.bind(this)
   }
@@ -41,7 +42,7 @@ export default class GameRoom extends Component {
   }
   renderMainArea() {
     if (this.state.gameData) return <Game socket={this.props.socket} data={this.state.gameData} id={this.id} handler={this.boundHandlers.gameDataHandler} />;
-    else if (this.state.setupData) return <GameSetup socket={this.props.socket} data={{...this.state.setupData, host: this.state.host}} id={this.id} handler={this.boundHandlers.setupDataHandler}/>;
+    else if (this.state.gameOptions) return <GameSetup socket={this.props.socket} data={{...this.state.gameOptions, host: this.state.host}} players={Object.keys(this.state.scoreBoard)} id={this.id} handler={this.boundHandlers.gameOptionsHandler}/>;
     return null; // reached when no data has been received from the server yet
   }
 
@@ -66,16 +67,16 @@ function gameDataHandler (data) {
   state.gameData = {...state.gameData, ...data};
   this.setState(state);
 }
-function setupDataHandler (data) {
+function gameOptionsHandler (data) {
   let state = {...this.state};
-  state.setupData = {...state.setupData, ...data};
+  state.gameOptions = {...state.gameOptions, ...data};
   this.setState(state);
 }
 function gameStartHandler (data) {
   this.setState({gameData: data});
 }
 function gameEndHandler (data) {
-  this.setState({gameData: null, setupData: data});
+  this.setState({gameData: null, gameOptions: data});
 }
 
 class ScoreBoard extends Component {

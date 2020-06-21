@@ -1,4 +1,5 @@
 const GameRoom = require('./GameRoom').GameRoom;
+const Player = require("./Player").Player;
 const {defaultGamePoint, defaultIdleTimer} = require('./config');
 
 exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
@@ -35,7 +36,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
     case 'getGameList': {
       let gameList = [];
       gameRooms.forEach((room, id) => {
-        gameList.push({...{id}, ...room.getGameRoomData()});
+        gameList.push({...{id}, ...room.getGameCardData()});
       });
       return socket.eventEmit('gameList', gameList);
     }
@@ -45,34 +46,44 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       if (room.gamePass) {
         if (!data.pass) return socket.eventEmit('gameRoomData', {needsGamePass: true});
         if (data.pass === room.gamePass) {
+          sockets.get(socket).gameRooms.push(id);
           let userRooms = users.get(sockets.get(socket).name).gameRooms;
-          if (!userRooms.includes(id)) userRooms.push(id);
-          room.joinedSockets.push(socket);
-          return socket.eventEmit('gameRoomData', room.getGameRoomData());
+          if (!userRooms.includes(id)) {
+            userRooms.push(id);
+            room.addPlayer(sockets.get(socket).name, new Player());
+          }
+          room.joinSocket(socket);
+          return socket.eventEmit('gameRoomData', room.getGameRoomData(sockets.get(socket).name));
         }
         return socket.eventEmit('gameAccessDenied');
       }
-      let userRooms = users.get(sockets.get(socket).name).gameRooms;
-      if (!userRooms.includes(id)) userRooms.push(id);
-      room.joinedSockets.push(socket);
-      return socket.eventEmit('gameRoomData', room.getGameRoomData());
+      sockets.get(socket).gameRooms.push(id);
+      let name = sockets.get(socket).name;
+      let userRooms = users.get(name).gameRooms;
+      if (!userRooms.includes(id)) {
+        userRooms.push(id);
+        room.addPlayer(name, new Player());
+      }
+      room.joinSocket(socket);
+      return socket.eventEmit('gameRoomData', room.getGameRoomData(name));
     }
     case 'getGameData': {
       let room = gameRooms.get(parseInt(data));
-      return socket.eventEmit('gameData', roomData.gameData);
+      let name = sockets.get(socket).name;
+      return socket.eventEmit('gameData', room.getPlayerGameData(name));
     }
-    case 'getSetupData': {
+    case 'getGameOptions': {
       let room = gameRooms.get(parseInt(data));
-      return socket.eventEmit('gameSetupData', room.setupData);
+      return socket.eventEmit('gameOptions', room.gameOptions);
     }
     case 'createGame': {
       if (!sockets.get(socket).name) return socket.eventEmit('gameCreateFailure', 'You must be logged in to create a game.');
       const newGameId = gameRooms.size + 1;
-      let setupData = {
+      let gameOptions = {
         idleTimer: defaultIdleTimer,
         gamePoint: defaultGamePoint
       };
-      let room = new GameRoom(sockets.get(socket).name, setupData);
+      let room = new GameRoom(newGameId, sockets.get(socket).name, gameOptions);
       gameRooms.set(newGameId, room);
       return socket.eventEmit('gameRedirect', newGameId);
     }
@@ -88,9 +99,9 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       let room = gameRooms.get(id);
       if (room.host !== sockets.get(socket).name) return;
       let isNumber = !isNaN(parseInt(data.timer));
-      room.setupData.idleTimer =  isNumber ? parseInt(data.timer) : null;
+      room.gameOptions.idleTimer =  isNumber ? parseInt(data.timer) : null;
       room.joinedSockets.forEach(socket => {
-        socket.eventEmit('gameSetupData', {idleTimer: room.setupData.idleTimer});
+        socket.eventEmit('gameOptions', {idleTimer: room.gameOptions.idleTimer});
       });
     }
     break;
@@ -98,11 +109,27 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       let id = parseInt(data.id);
       let room = gameRooms.get(id);
       if (room.host !== sockets.get(socket).name) return;
-      room.setupData.gamePoint = parseInt(data.gamePoint);
+      room.gameOptions.gamePoint = parseInt(data.gamePoint);
       room.joinedSockets.forEach(socket => {
-        socket.eventEmit('gameSetupData', {gamePoint: room.setupData.gamePoint});
+        socket.eventEmit('gameOptions', {gamePoint: room.gameOptions.gamePoint});
       });
     }
+    break;
+    case 'startGame': {
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      if (sockets.get(socket).name === room.host) {
+        if (!GameRoom.validateSettings(data.gameSettings) || Object.keys(room.scoreBoard).length < 3) return;
+        room.gamePoint = parseInt(data.gamePoint);
+        room.idleTimer = parseInt(data.idleTimer);
+        room.startGame();
+        room.joinedSockets.forEach(socket => {
+          let name = sockets.get(socket).name;
+          socket.eventEmit('gameStart', room.getPlayerGameData(name));
+        });
+      }
+    }
+    break;
     default: return;
   }
 }
