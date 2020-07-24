@@ -2,7 +2,7 @@ import React, { Component, Fragment } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import Lobby from './components/Lobby';
-import GameRoom from './components/GameRoom';
+import GameRoom from './containers/GameRoom';
 
 class App extends Component {
   render() {

@@ -36,16 +36,31 @@ server.on('connection', socket => {
     handleMessage(socket, JSON.parse(message), users, sockets, gameRooms);
   });
   socket.on('close', () => {
-    for (const room of sockets.get(socket).gameRooms) {
-      gameRooms.get(room).removeSocket(socket);
-    }
-    let user = sockets.get(socket).name;
-    if (user) {
-      if (users.get(user).sockets.length === 1) users.delete(user);
-      else {
-        let index = users.get(user).sockets.indexOf(socket);
-        users.get(user).sockets.splice(index, 1);
+    let name = sockets.get(socket).name;
+    if (name) {
+      let shouldDeleteUser = false;
+      let user = users.get(name);
+      if (user.sockets.length === 1) {
+        if (user.gameRooms.length > 0) {
+          user.timeout = setTimeout(() => {
+            users.delete(user);
+          }, 1000 * 60 * 3);
+          user.isOnline = false;
+          user.sockets = [];
+        }
+        else shouldDeleteUser = true;
       }
+      else {
+        let socketIdx = user.sockets.indexOf(socket);
+        user.sockets.splice(socketIdx, 1);
+      }
+      for (const room of users.get(name).gameRooms) {
+        if (gameRooms.get(room).removeSocket(socket)) {
+          let roomIdx = user.gameRooms.indexOf(room);
+          user.gameRooms.splice(roomIdx, 1);
+        }
+      }
+      if (shouldDeleteUser) users.delete(name);
     }
     sockets.delete(socket);
   });

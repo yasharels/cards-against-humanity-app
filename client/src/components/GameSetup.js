@@ -7,14 +7,8 @@ export default class GameSetup extends Component {
 
   componentDidMount() {
     const { socket, id } = this.props;
-    socket.on('gameOptions', this.props.handler);
-    this.cleanup = () => {
-      socket.off("gameOptions");
-    };
+    if (!socket.messageHandlers.gameOptions) socket.on('gameOptions', this.props.handler);
     socket.send(JSON.stringify({event: 'getGameOptions', payload: id}));
-  }
-  componentWillUnmount() {
-    this.cleanup();
   }
   handleGamePass(e) {
     const pass = e.target.value;
@@ -57,7 +51,6 @@ export default class GameSetup extends Component {
     let {players} = this.props;
     if (players.length < 3) this.setState({showGameStartWarning: true});
     else {
-      if (this.state.showGameStartWarning) this.setState({showGameStartWarning: false});
       this.props.socket.send(JSON.stringify({
         event: 'startGame',
         payload: {
@@ -69,6 +62,7 @@ export default class GameSetup extends Component {
         }
       }
       ));
+      if (this.state.showGameStartWarning) this.setState({showGameStartWarning: false});
     }
   }
   render() {

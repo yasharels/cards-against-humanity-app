@@ -8,12 +8,16 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
     case 'login': {
       let user = users.get(data);
       if (!user) {
-        users.set(data, {sockets: [socket], Ip: socket.remoteAddress, gameRooms: []});
+        users.set(data, {sockets: [socket], Ip: socket.remoteAddress, gameRooms: [], isOnline: true});
         sockets.get(socket).name = data;
         return socket.eventEmit('loginSuccess', data);
       }
       if (user.Ip !== socket.remoteAddress) {
         return socket.eventEmit('loginFailure', `${data} is already in use. Please pick another name.`);
+      }
+      if (!user.isOnline) {
+        clearTimeout(user.timeout);
+        user.isOnline = true;
       }
       user.sockets.push(socket);
       sockets.get(socket).name = data;
@@ -43,38 +47,51 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
     case 'joinGameRoom': {
       let id = parseInt(data.id);
       let room = gameRooms.get(id);
-      if (room.gamePass) {
-        if (!data.pass) return socket.eventEmit('gameRoomData', {needsGamePass: true});
-        if (data.pass === room.gamePass) {
-          sockets.get(socket).gameRooms.push(id);
-          let userRooms = users.get(sockets.get(socket).name).gameRooms;
-          if (!userRooms.includes(id)) {
-            userRooms.push(id);
-            room.addPlayer(sockets.get(socket).name, new Player());
-          }
-          room.joinSocket(socket);
-          return socket.eventEmit('gameRoomData', room.getGameRoomData(sockets.get(socket).name));
-        }
-        return socket.eventEmit('gameAccessDenied');
-      }
-      sockets.get(socket).gameRooms.push(id);
       let name = sockets.get(socket).name;
       let userRooms = users.get(name).gameRooms;
-      if (!userRooms.includes(id)) {
-        userRooms.push(id);
-        room.addPlayer(name, new Player());
+      if (userRooms.includes(id)) {
+        room.joinSocket(name, socket);
+        sockets.get(socket).gameRooms.push(id);
+        return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
       }
-      room.joinSocket(socket);
-      return socket.eventEmit('gameRoomData', room.getGameRoomData(name));
+      if (room.gamePass) {
+        if (!data.pass) return socket.eventEmit('gameRoomData', {needsGamePass: true, id});
+        if (data.pass === room.gamePass) {
+          sockets.get(socket).gameRooms.push(id);
+          userRooms.push(id);
+          room.addPlayer(name, new Player());
+          room.joinSocket(name, socket);
+          return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(sockets.get(socket).name)});
+        }
+        return socket.eventEmit('gameAccessDenied', {id});
+      }
+      sockets.get(socket).gameRooms.push(id);
+      userRooms.push(id);
+      room.addPlayer(name, new Player());
+      room.joinSocket(name, socket);
+      return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
+    }
+    case 'leaveGameRoom': {
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      room.removeSocket(socket);
+      let name = sockets.get(socket).name;
+      let userRooms = users.get(name).gameRooms;
+      let roomIdx = userRooms.indexOf(id);
+      userRooms.splice(roomIdx, 1);
+      roomIdx = sockets.get(socket).gameRooms.indexOf(id);
+      return sockets.get(socket).gameRooms.splice(roomIdx, 1);
     }
     case 'getGameData': {
-      let room = gameRooms.get(parseInt(data));
+      let id = parseInt(data);
+      let room = gameRooms.get(id);
       let name = sockets.get(socket).name;
-      return socket.eventEmit('gameData', room.getPlayerGameData(name));
+      return socket.eventEmit('gameData', {id, data: room.getPlayerGameData(name)});
     }
     case 'getGameOptions': {
-      let room = gameRooms.get(parseInt(data));
-      return socket.eventEmit('gameOptions', room.gameOptions);
+      let id = parseInt(data);
+      let room = gameRooms.get(id);
+      return socket.eventEmit('gameOptions', {id, data: room.gameOptions});
     }
     case 'createGame': {
       if (!sockets.get(socket).name) return socket.eventEmit('gameCreateFailure', 'You must be logged in to create a game.');
@@ -100,8 +117,8 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       if (room.host !== sockets.get(socket).name) return;
       let isNumber = !isNaN(parseInt(data.timer));
       room.gameOptions.idleTimer =  isNumber ? parseInt(data.timer) : null;
-      room.joinedSockets.forEach(socket => {
-        socket.eventEmit('gameOptions', {idleTimer: room.gameOptions.idleTimer});
+      room.joinedSockets.forEach((_, socket) => {
+        socket.eventEmit('gameOptions', {id, data: {idleTimer: room.gameOptions.idleTimer}});
       });
     }
     break;
@@ -110,8 +127,8 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       let room = gameRooms.get(id);
       if (room.host !== sockets.get(socket).name) return;
       room.gameOptions.gamePoint = parseInt(data.gamePoint);
-      room.joinedSockets.forEach(socket => {
-        socket.eventEmit('gameOptions', {gamePoint: room.gameOptions.gamePoint});
+      room.joinedSockets.forEach((_, socket) => {
+        socket.eventEmit('gameOptions', {id, data: {gamePoint: room.gameOptions.gamePoint}});
       });
     }
     break;
@@ -123,9 +140,9 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
         room.gamePoint = parseInt(data.gamePoint);
         room.idleTimer = parseInt(data.idleTimer);
         room.startGame();
-        room.joinedSockets.forEach(socket => {
+        room.joinedSockets.forEach((_, socket) => {
           let name = sockets.get(socket).name;
-          socket.eventEmit('gameStart', room.getPlayerGameData(name));
+          socket.eventEmit('gameStart', {id, data: room.getPlayerGameData(name)});
         });
       }
     }

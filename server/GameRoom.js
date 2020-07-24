@@ -10,9 +10,10 @@ class GameRoom {
     this.gameOptions = gameOptions;
     this.gameData = null;
     this.scoreBoard = {};
-    this.joinedSockets = [];
+    this.joinedSockets = new Map();
     this.gamePass = null;
     this.players = {};
+    this.timeouts = {};
   }
   static validateSettings(settings) {
     let {gamePoint, idleTimer} = settings;
@@ -21,12 +22,22 @@ class GameRoom {
     if (![1, 5, 10, 15, 20, 25].includes(idleTimer) && idleTimer !== null) return false;
     return true;
   }
-  joinSocket(socket) {
-    this.joinedSockets.push(socket);
+  joinSocket(name, socket) {
+    this.joinedSockets.set(socket, name);
+    this.players[name].joinSocket(socket);
   }
   removeSocket(socket) {
-    let socketIdx = this.joinedSockets.indexOf(socket);
-    this.joinedSockets.splice(socketIdx, 1);
+    let name = this.joinedSockets.get(socket);
+    let player = this.players[name];
+    if (player.roomSockets.length === 1) {
+      this.addTimeout(name);
+      this.joinedSockets.delete(socket);
+      player.removeSocket(socket);
+      return true;
+    }
+    this.joinedSockets.delete(socket);
+    player.removeSocket(socket);
+    return false;
   }
   getGameCardData() {
     return {
@@ -74,6 +85,16 @@ class GameRoom {
     });
     gameData.czar = playerNames[Math.floor(Math.random() * playerNames.length)];
     gameData.currentBlackCard = gameData.blackCards.drawCards();
+  }
+  addTimeout(name) {
+    this.timeouts[name] = setTimeout(() => {
+      if (this.players[name].roomSockets.length > 0) {
+        clearTimeout(this.timeouts[name]);
+      }
+      else {
+
+      }
+    }, 1000 * 60 * 3);
   }
 }
 
