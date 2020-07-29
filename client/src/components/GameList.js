@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import GameCard from './GameCard';
+import LinkCard from './LinkCard';
 
 class GameList extends React.Component {
   state = {
@@ -23,7 +23,7 @@ class GameList extends React.Component {
     return (
       <React.Fragment>
         {this.state.games.map(game => (
-             <GameCard game={game} />
+             <LinkCard game={game} />
         ))}
       </React.Fragment>
     );

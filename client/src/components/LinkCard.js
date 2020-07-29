@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-class GameCard extends Component {
+export default class LinkCard extends Component {
   id =  this.props.game.id;
   gamePoint = this.props.game.gamePoint;
   users = this.props.game.users;
@@ -20,5 +20,3 @@ class GameCard extends Component {
     );
   }
 }
-
-export default GameCard;
