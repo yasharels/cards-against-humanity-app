@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Game from './Game';
 import GameSetup from '../containers/GameSetup';
 import LoginArea from '../containers/LoginArea';
+import '../GameRoom.css';
 
 export default class GameRoom extends Component {
   id = this.props.match.params.id;
@@ -68,18 +69,19 @@ class ScoreBoard extends Component {
     const scoreData = this.props.scores;
 
     const rows = Object.entries(scoreData).map(([name, score], i) => (
-      <tr key={i}>
-        <td>
-          <div>{name}</div>
-          <div>{score}</div>
-        </td>
-      </tr>
+      <div class="scorecard" key={i}>
+          <div class="scoreboardName">{name}</div>
+          <div><span class="scoreboardPoints">{score}</span> points</div>
+      </div>
     ));
 
     return (
-      <table>
-        <tbody>{rows}</tbody>
-      </table>
+      <React.Fragment>
+        <div class="scoreboard">
+          <div class="scoreboardTitle">Scoreboard</div>
+          {rows}
+        </div>
+      </React.Fragment>
     );
   }
 }
