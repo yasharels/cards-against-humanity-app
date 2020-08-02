@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Game from './Game';
-import GameSetup from '../containers/GameSetup';
+import GameSetup from '../components/GameSetup';
 import LoginArea from '../containers/LoginArea';
 import '../GameRoom.css';
 
@@ -41,7 +41,7 @@ export default class GameRoom extends Component {
   }
   renderMainArea() {
     if (this.props.gameData) return <Game socket={this.props.socket} data={{...this.props.gameData, gamePoint: this.props.gameOptions.gamePoint, scoreBoard: this.props.scoreBoard}} name={this.props.name} id={this.id} roundEndHandler={this.boundHandlers.roundEndHandler} whiteCardChosen={this.boundHandlers.whiteCardChosen} gameDataHandler={this.boundHandlers.gameDataHandler} />;
-    else if (this.props.gameOptions) return <GameSetup socket={this.props.socket} data={{...this.props.gameOptions, host: this.props.host}} players={Object.keys(this.props.scoreBoard)} id={this.id} handler={this.boundHandlers.gameOptionsHandler}/>;
+    else if (this.props.gameOptions) return <GameSetup socket={this.props.socket} data={{...this.props.gameOptions, host: this.props.host}} players={Object.keys(this.props.scoreBoard)} name={this.props.name} id={this.id} handler={this.boundHandlers.gameOptionsHandler}/>;
     return null; // reached when no data has been received from the server yet
   }
 

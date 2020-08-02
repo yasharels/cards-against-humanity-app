@@ -72,10 +72,10 @@ export default class GameSetup extends Component {
       <form>
         <fieldset>
           <legend>Game settings:</legend>
-          <label>Gamepoint: <select onChange={this.handleGamepointChange.bind(this)} disabled={this.props.username !== data.host}>{this.renderGamePointDropdown()}</select></label>
-          <label>Idle timer: <select onChange={this.handleIdleTimerChange.bind(this)} disabled={this.props.username !== data.host}>{this.renderIdleTimerDropdown()}</select></label>
+          <label>Gamepoint: <select onChange={this.handleGamepointChange.bind(this)} disabled={this.props.name !== data.host}>{this.renderGamePointDropdown()}</select></label>
+          <label>Idle timer: <select onChange={this.handleIdleTimerChange.bind(this)} disabled={this.props.name !== data.host}>{this.renderIdleTimerDropdown()}</select></label>
           <label>Game password: <input type="text" onBlur={this.handleGamePass.bind(this)}/></label>
-          <label><button disabled={this.props.username !== data.host} onClick={this.startGame}>Start game</button></label>
+          <label><button disabled={this.props.name !== data.host} onClick={this.startGame}>Start game</button></label>
         </fieldset>
       </form>
       {this.state.showGameStartWarning && <span>You must have at least 3 players to start a game.</span>}
