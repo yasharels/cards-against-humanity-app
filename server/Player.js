@@ -8,6 +8,10 @@ class Player {
       this.hand.push(deck.drawCards());
     }
   }
+  playCard(card) {
+      let index = this.hand.indexOf(card);
+      this.hand.splice(index, 1);
+  }
   removeSocket(socket) {
     let index = this.roomSockets.indexOf(socket);
     this.roomSockets.splice(index, 1);

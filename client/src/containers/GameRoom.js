@@ -2,7 +2,7 @@ import  { connect } from 'react-redux';
 import GameRoomComponent from '../components/GameRoom';
 
 const mapStateToProps = (state, ownProps) => {
-  return state.gameRoomReducer[ownProps.match.params.id];
+  return {...state.gameRoomReducer[ownProps.match.params.id], name: state.loginReducer.username};
 };
 
 const mapDispatchToProps = dispatch => ({
@@ -30,9 +30,9 @@ const mapDispatchToProps = dispatch => ({
       payload: data
     });
   },
-  receivedGameData: data => {
+  gameDataChange: data => {
     dispatch({
-      type: "RECEIVED_GAME_DATA",
+      type: "GAME_DATA_CHANGE",
       payload: data
     });
   },
@@ -42,9 +42,15 @@ const mapDispatchToProps = dispatch => ({
       payload: data
     });
   },
-  gameEnd: data => {
+  roundEnd: data => {
     dispatch({
-      type: "GAME_END",
+      type: "ROUND_END",
+      payload: data
+    });
+  },
+  whiteCardChosen: data => {
+    dispatch({
+      type: "WHTIE_CARD_CHOSEN",
       payload: data
     });
   }

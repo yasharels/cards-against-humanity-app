@@ -9,7 +9,9 @@ export default class GameRoom extends Component {
 
   boundHandlers = {
     gameDataHandler: gameDataHandler.bind(this),
-    gameOptionsHandler: gameOptionsHandler.bind(this)
+    gameOptionsHandler: gameOptionsHandler.bind(this),
+    roundEndHandler: roundEndHandler.bind(this),
+    whiteCardChosen: whiteCardChosen.bind(this)
   }
 
   componentDidMount() {
@@ -18,7 +20,6 @@ export default class GameRoom extends Component {
     if (!sock.messageHandlers.gameRoomData) {
       sock.on('gameRoomData', this.roomDataHandler.bind(this));
       sock.on('gameStart', this.props.gameStart);
-      sock.on('gameEnd', this.props.gameEnd);
     }
     sock.send(JSON.stringify({event: 'joinGameRoom', payload: {id: this.id}}));
   }
@@ -39,7 +40,7 @@ export default class GameRoom extends Component {
     makePrompt(outerData);
   }
   renderMainArea() {
-    if (this.props.gameData) return <Game socket={this.props.socket} data={this.props.gameData} id={this.id} handler={this.boundHandlers.gameDataHandler} />;
+    if (this.props.gameData) return <Game socket={this.props.socket} data={{...this.props.gameData, gamePoint: this.props.gameOptions.gamePoint, scoreBoard: this.props.scoreBoard}} name={this.props.name} id={this.id} roundEndHandler={this.boundHandlers.roundEndHandler} whiteCardChosen={this.boundHandlers.whiteCardChosen} gameDataHandler={this.boundHandlers.gameDataHandler} />;
     else if (this.props.gameOptions) return <GameSetup socket={this.props.socket} data={{...this.props.gameOptions, host: this.props.host}} players={Object.keys(this.props.scoreBoard)} id={this.id} handler={this.boundHandlers.gameOptionsHandler}/>;
     return null; // reached when no data has been received from the server yet
   }
@@ -58,10 +59,16 @@ export default class GameRoom extends Component {
 
 
 function gameDataHandler (data) {
-  this.props.receivedGameData(data);
+  this.props.gameDataChange(data);
 }
 function gameOptionsHandler (data) {
   this.props.receivedGameOptionsData(data);
+}
+function roundEndHandler (data) {
+  this.props.roundEnd(data);
+}
+function whiteCardChosen (data) {
+  this.props.whiteCardChosen(data);
 }
 
 class ScoreBoard extends Component {

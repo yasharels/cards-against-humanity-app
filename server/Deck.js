@@ -10,6 +10,10 @@ class Deck {
     }
     return drawnCards;
   }
+  addCards(cards) {
+    cards.forEach(card => this.cards.push(card));
+    return this;
+  }
   shuffle() {
     let cards = this.cards;
     for (let i = cards.length - 1; i > 0; i--) {

@@ -1,0 +1,10 @@
+.blackCard {
+  width: 232px;
+  height: 232px;
+  background: #231f20;
+  color: #fff;
+  border: 1px solid #999;
+  border-radius: .25em;
+  font-size: 20px;
+  font-family: helvetica neue, helvetica, Arial, sans-serif;
+}

@@ -51,6 +51,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       let userRooms = users.get(name).gameRooms;
       if (userRooms.includes(id)) {
         room.joinSocket(name, socket);
+        room.players[name].joinSocket(socket);
         sockets.get(socket).gameRooms.push(id);
         return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
       }
@@ -61,7 +62,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
           userRooms.push(id);
           room.addPlayer(name, new Player());
           room.joinSocket(name, socket);
-          return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(sockets.get(socket).name)});
+          return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
         }
         return socket.eventEmit('gameAccessDenied', {id});
       }
@@ -147,6 +148,23 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       }
     }
     break;
+    case 'chooseSubmission': {
+      let name = sockets.get(socket).name;
+      if (!name) return;
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      if (!room.gameData) return;
+      room.chooseSubmission(name, data.card);
+    }
+    break;
+    case 'submitWhiteCard': {
+      let name = sockets.get(socket).name;
+      if (!name) return;
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      if (!room.gameData) return;
+      room.submitWhiteCard(name, data.card);
+    }
     default: return;
   }
 }

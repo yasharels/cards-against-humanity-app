@@ -54,7 +54,7 @@ server.on('connection', socket => {
         let socketIdx = user.sockets.indexOf(socket);
         user.sockets.splice(socketIdx, 1);
       }
-      for (const room of users.get(name).gameRooms) {
+      for (const room of sockets.get(socket).gameRooms) {
         if (gameRooms.get(room).removeSocket(socket)) {
           let roomIdx = user.gameRooms.indexOf(room);
           user.gameRooms.splice(roomIdx, 1);
