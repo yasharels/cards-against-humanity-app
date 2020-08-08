@@ -63,7 +63,7 @@ export default function gameRoomReducer (state = {}, action) {
       else {
         obj[id] = {
           ...state[id],
-          gameData: {...state[id].gameData, chosenCard: null},
+          gameData: {...state[id].gameData, chosenCard: null, whiteCardsPlayed: {}},
           scoreBoard: {...state[id].scoreBoard, [data.roundWinner]: state[id].scoreBoard[data.roundWinner] + 1}
         };
       }

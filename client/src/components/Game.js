@@ -42,8 +42,8 @@ export default class Game extends Component {
     let data = this.props.data;
     let sock = this.props.socket;
     const hand = data.hand.map(card => (
-      <div id={card === this.state.selectedWhiteCard ? 'selected' : null} className="whiteCard" key={card} onClick={() => {if (data.czar !== this.props.name) this.selectWhiteCard.bind(this)(card)}}>
-        <span key={card}>{card}</span>
+      <div className={`handWhiteCard${card === this.state.selectedWhiteCard ? ' selected' : ''}`} key={card} onClick={() => {if (data.czar !== this.props.name) this.selectWhiteCard.bind(this)(card)}}>
+        <span>{card}</span>
       </div>
     ));
     const playedWhiteCards = [], roundWhiteCards = [];
@@ -52,25 +52,40 @@ export default class Game extends Component {
       for (let i = 0; i < data.roundWhiteCards.length; i++) {
         let cards = [];
         for (let j = 0; j < data.roundWhiteCards[i].length; j++) {
-          cards.push(<div className={`roundWhiteCard${this.props.name === data.czar && data.roundWhiteCards[i].includes(this.state.czarSelection) ? ' czarSelected' : ''}${data.roundWhiteCards[i].includes(this.props.chosenCard) ? 'chosenCard' : ''}`} onClick={() => {if (data.czar === this.props.name) this.czarSelect.bind(this)(data.roundWhiteCards[i][j])}}><span>{data.roundWhiteCards[i][j]}</span></div>);
+          let text = data.roundWhiteCards[i][j];
+          cards.push(<div className={`roundWhiteCard${this.props.name === data.czar && data.roundWhiteCards[i].includes(this.state.czarSelection) ? ' selected' : ''}${data.roundWhiteCards[i].includes(this.props.chosenCard) ? ' chosenCard' : ''}`} onClick={() => {if (data.czar === this.props.name) this.czarSelect.bind(this)(text)}}><span>{text}</span></div>);
         }
-        roundWhiteCards.push(<div className="roundWhiteCardsContainer" key={i}>{cards}</div>);
+        roundWhiteCards.push(<div className="roundWhiteCardsContainer" key={data.roundWhiteCards[i][0]}>{cards}</div>);
       }
     }
     else {
-      for (let i = 0; i < data.whiteCardsPlayed; i++) playedWhiteCards.push(<div className="playedWhiteCard" key={i}></div>);
-      this.state.ownCardsPlayed.forEach(card => playedWhiteCards.push(<div className="roundWhiteCard"><span>{card}</span></div>));
+      let index = 0;
+      if (data.whiteCardsPlayed && Object.keys(data.whiteCardsPlayed).length > 0) {
+        Object.keys(data.whiteCardsPlayed).forEach(group => {
+          let times = data.whiteCardsPlayed[group];
+          if (Number(group) === this.state.ownCardsPlayed.length) times--;
+          for (let i = 0; i < times; i++) {
+            let cards = [];
+            for (let j = 0; j < group; j++) cards.push(<div className="playedWhiteCard"></div>);
+            playedWhiteCards.push(<div className="playedWhiteCardsContainer" key={index}>{cards}</div>);
+            index++;
+          }
+        });
+      }
+      let cards = [];
+      this.state.ownCardsPlayed.forEach(card => cards.push(<div className="roundWhiteCard"><span>{card}</span></div>));
+      playedWhiteCards.push(<div className="playedWhiteCardsContainer" key={index}>{cards}</div>);
     }
     return (
       <React.Fragment>
       <div className="blackCard">
         <span>{data.currentBlackCard.text}</span>
       </div>
+      <div id="playedAndRoundWhiteCardsArea">{roundWhiteCards.length < 1 ? playedWhiteCards : roundWhiteCards}</div>
       {data.roundWhiteCards.length > 0 && this.props.name === data.czar ? <button onClick={() => this.czarSubmit.bind(this)()} id="czarSelectButton">Pick Card</button> : null}
       {data.roundWhiteCards.length < 1 && this.props.name !== data.czar ? <button disabled={this.state.ownCardsPlayed.length === data.currentBlackCard.pick} id="confirmWhiteCard" onClick={() => this.submitWhiteCard.bind(this)()
       }>Confirm Selection</button> : null}
-      {roundWhiteCards.length < 1 ? <div id="playedWhiteCards">{playedWhiteCards}</div> : <div id="roundWhiteCards">{roundWhiteCards}</div>}
-      <div id="hand">{hand}</div>
+      <div id="hand">{this.props.name === data.czar ? <div id="hand-filter"><span id="hand-filter-text">You are the card czar.</span></div> : null}{hand}</div>
       </React.Fragment>
     );
   }

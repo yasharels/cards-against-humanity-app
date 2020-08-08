@@ -1,10 +1,111 @@
+#hand-filter {
+  height: inherit;
+  width: 100%;
+  position: absolute;
+  text-align: center;
+  background: rgba(192, 192, 192, 0.5);
+}
+
+#hand-filter-text {
+  position: absolute;
+  top: 50%;
+  margin-top: -30px;
+  font-size: 300%;
+  background: #eee;
+  padding: .25em;
+  color: #000;
+}
+
+#hand {
+  height: 152px;
+  display: flex;
+  clear: both;
+  flex-direction: row;
+  margin-top: 10px;
+}
+
+#confirmWhiteCard {
+  display: block;
+  clear: both;
+}
+
+#czarSelectButton {
+  display: block;
+  clear: both;
+}
+
+#playedAndRoundWhiteCardsArea {
+  display: flex;
+  flex-direction: row;
+}
+
+.playedWhiteCardsContainer, .roundWhiteCardsContainer {
+  display: flex;
+  flex-direction: row;
+  margin-left: 10px;
+}
+
 .blackCard {
-  width: 232px;
-  height: 232px;
+  width: 201px;
+  height: 201px;
   background: #231f20;
   color: #fff;
   border: 1px solid #999;
+  padding: 15px;
   border-radius: .25em;
   font-size: 20px;
-  font-family: helvetica neue, helvetica, Arial, sans-serif;
+  float: left;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-family: "helvetica neue", helvetica, Arial, sans-serif;
+}
+
+.handWhiteCard {
+  width: 120px;
+  height: 120px;
+  background: white;
+  color: #231f20;
+  font-size: 10pt;
+  border: 1px solid #999;
+  padding: 15px;
+  border-radius: .25em;
+  margin-left: 5px;
+  font-family: "helvetica neue", helvetica, Arial, sans-serif;
+  transition: width .25s, height .25s, font-size .25s;
+}
+
+.handWhiteCard:hover {
+  width: 202px;
+  height: 202px;
+  font-size: 15pt;
+  cursor: pointer;
+}
+
+.playedWhiteCard {
+  width: 232px;
+  height: 232px;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: .25em;
+  margin-right: 5px;
+  float: left;
+}
+
+.roundWhiteCard {
+  width: 202px;
+  height: 202px;
+  background: white;
+  color: #231f20;
+  font-size: 15pt;
+  border: 1px solid #999;
+  padding: 15px;
+  border-radius: .25em;
+  margin-right: 5px;
+  float: left;
+  font-family: "helvetica neue", helvetica, Arial, sans-serif;
+}
+
+.selected {
+  color: #fff;
+  background: #3c7fb1;
 }

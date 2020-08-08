@@ -172,8 +172,14 @@ class GameRoom {
       });
     }
     else {
+      let whiteCardsPlayed = {};
+      Object.keys(this.gameData.currentWhiteCardsPlayed).forEach(name => {
+        let numOfCards = String(this.gameData.currentWhiteCardsPlayed[name].length);
+        if (!whiteCardsPlayed[numOfCards]) whiteCardsPlayed[numOfCards] = 1;
+        else whiteCardsPlayed[numOfCards]++;
+      });
       this.joinedSockets.forEach((_, socket) => {
-        socket.eventEmit("gameData", {id: this.id, data: {whiteCardsPlayed: Object.keys(this.gameData.currentWhiteCardsPlayed).length}});
+        socket.eventEmit("gameData", {id: this.id, data: {whiteCardsPlayed}});
       });
     }
   }

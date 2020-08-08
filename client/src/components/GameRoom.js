@@ -49,7 +49,7 @@ export default class GameRoom extends Component {
     return (
       <React.Fragment>
         <LoginArea socket={this.props.socket} />
-        {this.renderMainArea()}
+        <div id="mainArea">{this.renderMainArea()}</div>
         {this.props.scoreBoard ? <ScoreBoard scores={this.props.scoreBoard} /> : null}
       </React.Fragment>
     )

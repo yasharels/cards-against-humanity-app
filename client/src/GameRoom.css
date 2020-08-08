@@ -1,9 +1,18 @@
+#mainArea {
+  height: 70%;
+  position: relative;
+  top: 10px;
+}
+
 .scoreboard {
   width: 250px;
   height: 100%;
   position: absolute;
-  overflow-y: scroll;
+  top: 34em;
+  left: 0em;
+  overflow-y: auto;
 }
+
 .scorecard {
   background: #fff;
   height: 36px;
@@ -11,13 +20,16 @@
   border-bottom: 1px solid #bbb;
   font-size: 11pt;
 }
+
 .scoreboardTitle {
   font-size: 150%;
   font-weight: 700;
 }
+
 .scoreboardName {
   font-weight: 700;
 }
+
 .scoreboardPoints {
   font-weight: 700;
 }
