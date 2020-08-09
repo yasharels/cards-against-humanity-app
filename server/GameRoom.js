@@ -197,13 +197,10 @@ class GameRoom {
       }
     }
     this.scoreBoard[chosenPlayer]++;
-    this.joinedSockets.forEach((_, socket) => {
-      socket.eventEmit("whiteCardChosen", {id: this.id, data: {roundWinner: chosenPlayer, chosenCard: card}});
-    });
-    if (this.scoreBoard[chosenPlayer] === this.gameOptions.gamePoint) this.endGame();
-    else this.nextRound();
+    if (this.scoreBoard[chosenPlayer] === this.gameOptions.gamePoint) this.endGame(chosenPlayer, card);
+    else this.nextRound(chosenPlayer, card);
   }
-  nextRound() {
+  nextRound(chosenPlayer, card) {
     let gameData = this.gameData;
     let playerNames = Object.keys(this.players);
     let savedNames = Object.keys(this.savedPlayerData);
@@ -221,10 +218,10 @@ class GameRoom {
     });
     gameData.currentBlackCard = gameData.blackCards.drawCards();
     this.joinedSockets.forEach((name, socket) => {
-      socket.eventEmit("gameData", {id: this.id, data: this.getPlayerGameData(name)});
+      socket.eventEmit("whiteCardChosen", {id: this.id, data: {roundWinner: chosenPlayer, card, nextRoundData: this.getPlayerGameData(name)}});
     });
   }
-  endGame() {
+  endGame(chosenPlayer, card) {
     this.gameData = null;
     Object.keys(this.players).forEach(name => {
       this.players[name].hand = [];
@@ -233,6 +230,9 @@ class GameRoom {
     Object.keys(this.savedPlayerData).forEach(name => {
       this.savedPlayerData[name].hand = [];
       this.scoreBoard[name] = 0;
+    });
+    this.joinedSockets.forEach((name, socket) => {
+      socket.eventEmit("whiteCardChosen", {id: this.id, data: {roundWinner: chosenPlayer, card}});
     });
   }
 }

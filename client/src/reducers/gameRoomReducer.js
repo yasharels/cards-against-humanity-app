@@ -48,7 +48,7 @@ export default function gameRoomReducer (state = {}, action) {
     case 'ROUND_END': {
       let {id, data} = action.payload;
       let obj = {};
-      let gameEnded = state[id].scoreBoard[data.roundWinner] === state[id].gameOptions.gamePoint - 1;
+      let gameEnded = !data.nextRoundData;
       if (gameEnded) {
         let scoreBoard = {};
         Object.keys(state[id].scoreBoard).forEach(player => {
@@ -63,8 +63,7 @@ export default function gameRoomReducer (state = {}, action) {
       else {
         obj[id] = {
           ...state[id],
-          gameData: {...state[id].gameData, chosenCard: null, whiteCardsPlayed: {}},
-          scoreBoard: {...state[id].scoreBoard, [data.roundWinner]: state[id].scoreBoard[data.roundWinner] + 1}
+          gameData: {...state[id].gameData, chosenCard: null, whiteCardsPlayed: {}, ...data.nextRoundData}
         };
       }
       return {...state, ...obj};
@@ -74,7 +73,8 @@ export default function gameRoomReducer (state = {}, action) {
       let obj = {};
       obj[id] = {
         ...state[id],
-        gameData: {...state[id].gameData, chosenCard: data.card}
+        gameData: {...state[id].gameData, chosenCard: data.card},
+        scoreBoard: {...state[id].scoreBoard, [data.roundWinner]: state[id].scoreBoard[data.roundWinner] + 1}
       };
       return {...state, ...obj};
     }

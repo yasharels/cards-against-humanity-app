@@ -50,7 +50,7 @@ const mapDispatchToProps = dispatch => ({
   },
   whiteCardChosen: data => {
     dispatch({
-      type: "WHTIE_CARD_CHOSEN",
+      type: "WHITE_CARD_CHOSEN",
       payload: data
     });
   }

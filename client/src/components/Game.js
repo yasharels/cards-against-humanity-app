@@ -32,7 +32,7 @@ export default class Game extends Component {
       socket.on("gameData", this.props.gameDataHandler);
       socket.on("whiteCardChosen", msg => {
         this.props.whiteCardChosen(msg);
-        this.props.roundEndHandler(msg);
+        setTimeout(() => this.props.roundEndHandler(msg), 3000);
       });
     }
     socket.send(JSON.stringify({event: 'getGameData', payload: id}));
@@ -53,7 +53,7 @@ export default class Game extends Component {
         let cards = [];
         for (let j = 0; j < data.roundWhiteCards[i].length; j++) {
           let text = data.roundWhiteCards[i][j];
-          cards.push(<div className={`roundWhiteCard${this.props.name === data.czar && data.roundWhiteCards[i].includes(this.state.czarSelection) ? ' selected' : ''}${data.roundWhiteCards[i].includes(this.props.chosenCard) ? ' chosenCard' : ''}`} onClick={() => {if (data.czar === this.props.name) this.czarSelect.bind(this)(text)}}><span>{text}</span></div>);
+          cards.push(<div className={`roundWhiteCard${(this.props.name === data.czar && data.roundWhiteCards[i].includes(this.state.czarSelection)) || data.roundWhiteCards[i].includes(data.chosenCard)? ' selected' : ''}`} onClick={() => {if (data.czar === this.props.name) this.czarSelect.bind(this)(text)}}><span>{text}</span></div>);
         }
         roundWhiteCards.push(<div className="roundWhiteCardsContainer" key={data.roundWhiteCards[i][0]}>{cards}</div>);
       }
