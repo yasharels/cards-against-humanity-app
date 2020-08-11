@@ -47,6 +47,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
     case 'joinGameRoom': {
       let id = parseInt(data.id);
       let room = gameRooms.get(id);
+      if (!room) return socket.eventEmit('gameIdInvalid');
       let name = sockets.get(socket).name;
       let userRooms = users.get(name).gameRooms;
       if (userRooms.includes(id)) {
@@ -75,6 +76,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
     case 'leaveGameRoom': {
       let id = parseInt(data.id);
       let room = gameRooms.get(id);
+      if (!room || !room.joinedSockets.has(socket)) return;
       room.removeSocket(socket);
       let name = sockets.get(socket).name;
       let userRooms = users.get(name).gameRooms;

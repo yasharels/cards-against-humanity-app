@@ -15,12 +15,13 @@ export default class GameRoom extends Component {
   }
 
   componentDidMount() {
-    this.props.joinGameRoom(this.id);
     let sock = this.props.socket;
     if (!sock.messageHandlers.gameRoomData) {
       sock.on('gameRoomData', this.roomDataHandler.bind(this));
       sock.on('gameStart', this.props.gameStart);
+      sock.on('gameIdInvalid', () => alert("This game does not exist."));
     }
+    this.props.joinGameRoom(this.id);
     sock.send(JSON.stringify({event: 'joinGameRoom', payload: {id: this.id}}));
   }
   componentWillUnmount() {
