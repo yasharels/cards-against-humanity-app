@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import '../GameSetup.css';
 
 export default class GameSetup extends Component {
   state = {

@@ -15,6 +15,7 @@ class GameRoom {
     this.players = {};
     this.timeouts = {};
     this.savedPlayerData = {};
+    this.chatlog = [];
   }
   static validateSettings(settings) {
     let {gamePoint, idleTimer} = settings;
@@ -233,6 +234,12 @@ class GameRoom {
     });
     this.joinedSockets.forEach((name, socket) => {
       socket.eventEmit("whiteCardChosen", {id: this.id, data: {roundWinner: chosenPlayer, card}});
+    });
+  }
+  addChatMessage(data) {
+    this.chatlog.push(data);
+    this.joinedSockets.forEach((_, socket) => {
+      socket.eventEmit('chatMessage', {id: this.id, data: {name: data.name, content: data.content}});
     });
   }
 }

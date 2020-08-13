@@ -167,6 +167,12 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       if (!room.gameData) return;
       room.submitWhiteCard(name, data.card);
     }
+    case 'chatMessage': {
+      let id = parseInt(data.id);
+      let room = gameRooms.get(id);
+      room.addChatMessage({name: sockets.get(socket).name, content: data.message});
+    }
+    break;
     default: return;
   }
 }

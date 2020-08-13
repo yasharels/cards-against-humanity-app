@@ -53,6 +53,12 @@ const mapDispatchToProps = dispatch => ({
       type: "WHITE_CARD_CHOSEN",
       payload: data
     });
+  },
+  chatMessageHandler: data => {
+    dispatch({
+      type: "CHAT_MESSAGE",
+      payload: data
+    });
   }
 });
 export default connect(mapStateToProps, mapDispatchToProps)(GameRoomComponent);

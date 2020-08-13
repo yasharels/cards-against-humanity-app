@@ -2,7 +2,9 @@ export default function gameRoomReducer (state = {}, action) {
   switch (action.type) {
     case 'JOIN_GAME_ROOM': {
       let obj = {};
-      obj[action.payload] = {};
+      obj[action.payload] = {
+        chatLog: []
+      };
       return {...state, ...obj};
     }
     case 'LEAVE_GAME_ROOM': {
@@ -75,6 +77,15 @@ export default function gameRoomReducer (state = {}, action) {
         ...state[id],
         gameData: {...state[id].gameData, chosenCard: data.card},
         scoreBoard: {...state[id].scoreBoard, [data.roundWinner]: state[id].scoreBoard[data.roundWinner] + 1}
+      };
+      return {...state, ...obj};
+    }
+    case 'CHAT_MESSAGE': {
+      let {id, data} = action.payload;
+      let obj = {};
+      obj[id] = {
+        ...state[id],
+        chatLog: [...state[id].chatLog, {name: data.name, content: data.content}]
       };
       return {...state, ...obj};
     }

@@ -20,7 +20,6 @@
   height: 152px;
   display: flex;
   clear: both;
-  flex-direction: row;
   margin-top: 10px;
 }
 
@@ -36,12 +35,10 @@
 
 #playedAndRoundWhiteCardsArea {
   display: flex;
-  flex-direction: row;
 }
 
 .playedWhiteCardsContainer, .roundWhiteCardsContainer {
   display: flex;
-  flex-direction: row;
   margin-left: 10px;
 }
 

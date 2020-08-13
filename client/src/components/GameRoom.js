@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Game from './Game';
-import GameSetup from '../components/GameSetup';
+import GameSetup from './GameSetup';
+import Chat from './Chat';
 import LoginArea from '../containers/LoginArea';
 import '../GameRoom.css';
 
@@ -20,6 +21,7 @@ export default class GameRoom extends Component {
       sock.on('gameRoomData', this.roomDataHandler.bind(this));
       sock.on('gameStart', this.props.gameStart);
       sock.on('gameIdInvalid', () => alert("This game does not exist."));
+      sock.on('chatMessage', this.props.chatMessageHandler);
     }
     this.props.joinGameRoom(this.id);
     sock.send(JSON.stringify({event: 'joinGameRoom', payload: {id: this.id}}));
@@ -49,9 +51,12 @@ export default class GameRoom extends Component {
   render() {
     return (
       <React.Fragment>
-        <LoginArea socket={this.props.socket} />
+        <div id="gameroomTop"><LoginArea socket={this.props.socket} /></div>
         <div id="mainArea">{this.renderMainArea()}</div>
-        {this.props.scoreBoard ? <ScoreBoard scores={this.props.scoreBoard} /> : null}
+        <div id="gameroomBottom">
+          {this.props.scoreBoard ? <ScoreBoard scores={this.props.scoreBoard} /> : null}
+          <Chat id={this.id} socket={this.props.socket} name={this.props.name} chatLog={this.props.chatLog} />
+        </div>
       </React.Fragment>
     )
   }

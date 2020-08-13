@@ -1,15 +1,22 @@
+#gameroomTop {
+  height: 5%;
+}
+
 #mainArea {
-  height: 70%;
+  height: 55%;
   position: relative;
-  top: 10px;
+}
+
+#gameroomBottom {
+  position: relative;
+  height: 40%;
+  width: 100%;
+  display: flex;
 }
 
 .scoreboard {
   width: 250px;
   height: 100%;
-  position: absolute;
-  top: 34em;
-  left: 0em;
   overflow-y: auto;
 }
 
@@ -32,4 +39,27 @@
 
 .scoreboardPoints {
   font-weight: 700;
+}
+
+.chat {
+  background: #f2f5f7;
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.chatlog {
+  overflow: auto;
+  width: 100%;
+  height: 90%;
+}
+
+.chatbox {
+  display: flex;
+  white-space: pre;
+}
+
+.chatbox textarea {
+  height: 15px;
+  flex: 1;
 }
