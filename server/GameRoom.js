@@ -26,7 +26,14 @@ class GameRoom {
   }
   joinSocket(name, socket) {
     this.joinedSockets.set(socket, name);
-    this.players[name].joinSocket(socket);
+    if (this.players[name]) this.players[name].joinSocket(socket);
+    if (this.savedPlayerData[name]) {
+      this.savedPlayerData[name].joinSocket(socket);
+      clearTimeout(this.timeouts[name]);
+      delete this.timeouts[name];
+      this.players[name] = this.savedPlayerData[name];
+      delete this.savedPlayerData[name];
+    }
   }
   removeSocket(socket) {
     let name = this.joinedSockets.get(socket);
@@ -43,13 +50,15 @@ class GameRoom {
     player.removeSocket(socket);
     return false;
   }
-  getGameCardData() {
+  getGameInfoBoxData() {
     return {
       id: this.id,
-      creator: this.host,
-      users: Object.keys(this.players),
+      host: this.host,
+      inProgress: !!this.gameData,
+      password: !!this.gameOptions.gamePass,
+      players: [...Object.keys(this.players), ...Object.keys(this.savedPlayerData)],
       gamePoint: this.gameOptions.gamePoint
-    }
+    };
   }
   getGameRoomData(playerName) {
     if (this.gameData) return {
@@ -64,30 +73,19 @@ class GameRoom {
       scoreBoard: this.scoreBoard
     };
   }
+  getAllPlayersList() {
+    return [...Object.keys(this.players), ...Object.keys(this.savedPlayerData)];
+  }
   addPlayer(playerName, player) {
-    if (this.savedPlayerData[playerName]) {
-      clearTimeout(this.timeouts[playerName]);
-      delete this.timeouts[playerName];
-      this.players[playerName] = this.savedPlayerData[playerName];
-      delete this.savedPlayerData[playerName];
+    this.scoreBoard[playerName] = 0;
+    this.players[playerName] = player;
+    if (this.gameData) {
+      player.drawCards(this.gameData.whiteCards, config.cardsInHand);
+      this.gameData.currentWhiteCardsPlayed[playerName] = [];
     }
-    else {
-      this.scoreBoard[playerName] = 0;
-      this.players[playerName] = player;
-      if (this.gameData) {
-        player.drawCards(this.gameData.whiteCards, config.cardsInHand);
-        this.gameData.currentWhiteCardsPlayed[playerName] = [];
-        if (Object.keys(this.players).length === 0) {
-          this.gameData.czar = playerName;
-          player.roomSockets.forEach(socket => {
-            socket.eventEmit("gameData", {id: this.id, data: {czar: playerName}});
-          });
-        }
-      }
-      this.joinedSockets.forEach((_, socket) => {
-        socket.eventEmit("gameRoomData", {id: this.id, data: {scoreBoard: this.scoreBoard}});
-      });
-    }
+    this.joinedSockets.forEach((_, socket) => {
+      socket.eventEmit("gameRoomData", {id: this.id, data: {scoreBoard: this.scoreBoard}});
+    });
   }
   removePlayer(playerName) {
     if (!this.gameData) {
@@ -119,6 +117,8 @@ class GameRoom {
         socket.eventEmit("gameRoomData", {id: this.id, data: {scoreBoard: this.scoreBoard, gameData: this.gameData}});
       });
     }
+    let index = users.get(playerName).gameRooms.indexOf(this.id);
+    users.get(playerName).gameRooms.splice(index, 1);
   }
   getPlayerGameData(playerName) {
     let names = Object.keys(this.gameData.currentWhiteCardsPlayed);

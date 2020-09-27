@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import LoginArea from '../containers/LoginArea'
 import GameList from './GameList';
+import '../Lobby.css';
 
 export default class Lobby extends Component {
   createGame() {

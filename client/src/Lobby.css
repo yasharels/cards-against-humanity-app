@@ -1,0 +1,32 @@
+.gameList {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  width: 90%;
+  font-family: helvetica neue, helvetica, Arial, sans-serif;
+  padding: .5em;
+}
+
+.gameinfobox {
+  height: 175px;
+  background: #fff;
+}
+
+.gameinfobox-left {
+  width: 65%;
+  display: inline-block;
+  vertical-align: top;
+  padding: 1%;
+}
+.gameinfobox-right {
+  width: 33%;
+  height: 100%;
+  display: inline-block;
+}
+
+.gameinfoTitleText {
+  font-size: 1.17em;
+}
+.gamelink button {
+  height: 100%;
+  width: 100%;
+}

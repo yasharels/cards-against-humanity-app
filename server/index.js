@@ -19,11 +19,11 @@ http.listen(80, () => {
   console.log('listening on port 80');
 });
 
-let gameRooms = new Map();
+global.gameRooms = new Map();
 
 
-let users = new Map();
-let sockets = new Map();
+global.users = new Map();
+global.sockets = new Map();
 
 server.on('connection', socket => {
   sockets.set(socket, {
@@ -33,7 +33,7 @@ server.on('connection', socket => {
     socket.write(JSON.stringify({event, payload}));
   };
   socket.on('data', message => {
-    handleMessage(socket, JSON.parse(message), users, sockets, gameRooms);
+    handleMessage(socket, JSON.parse(message));
   });
   socket.on('close', () => {
     let name = sockets.get(socket).name;

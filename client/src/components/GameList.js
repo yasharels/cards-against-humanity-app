@@ -1,49 +1,53 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import LinkCard from './LinkCard';
+import GameInfoBox from './GameInfoBox';
 
-class GameList extends React.Component {
+export default class GameList extends Component {
+  constructor(props) {
+    super(props);
+    this.newGameHandler = this.newGameHandler.bind(this);
+    this.deleteGameHandler = this.deleteGameHandler.bind(this);
+    this.gameDataChangeHandler = this.gameDataChangeHandler.bind(this);
+    this.gameListHandler = this.gameListHandler.bind(this);
+  }
+
   state = {
-    games: []
+    gamesData: []
   };
-  boundHandlers = {
-    newGameHandler: newGameHandler.bind(this),
-    deleteGameHandler: deleteGameHandler.bind(this),
-    gameDataChangeHandler: gameDataChangeHandler.bind(this),
-    gameListHandler: gameListHandler.bind(this)
-  };
+
+  newGameHandler(gameData) {
+    this.setState(() => [...this.state.gamesData, gameData]);
+  }
+  deleteGameHandler(gameId) {
+    this.setState({
+      gamesData: this.state.gamesData.filter(curData => curData.id !== gameId)
+    });
+  }
+  gameDataChangeHandler(data) {
+    this.setState({
+      gamesData: this.state.gamesData.map(curData => curData.id === data.gameId ? {...curData, ...data.gameData} : curData)
+    });
+  }
+  gameListHandler(data) {
+    this.setState({gamesData: data});
+  }
   componentDidMount() {
-    this.props.socket.on('newGame', this.boundHandlers.newGameHandler);
-    this.props.socket.on('deleteGame', this.boundHandlers.deleteGameHandler);
-    this.props.socket.on('gameDataChange', this.boundHandlers.gameDataChangeHandler);
-    this.props.socket.on('gameList', this.boundHandlers.gameListHandler);
+    this.props.socket.on('newGame', this.newGameHandler);
+    this.props.socket.on('deleteGame', this.deleteGameHandler);
+    this.props.socket.on('gameDataChange', this.gameDataChangeHandler);
+    this.props.socket.on('gameList', this.gameListHandler);
     this.props.socket.send(JSON.stringify({event: 'getGameList'}));
   }
+
   render() {
     return (
       <React.Fragment>
-        {this.state.games.map(game => (
-             <LinkCard game={game} />
-        ))}
+        <div className="gameList">
+          {this.state.gamesData.map(gameData => (
+            <GameInfoBox gameData={gameData} />
+          ))}
+        </div>
       </React.Fragment>
     );
   }
 }
-
-function newGameHandler(game) {
-  this.setState(prevState => [...this.state.games, game]);
-}
-function deleteGameHandler(gameId) {
-  this.setState(prevState =>
-    prevState.filter(curGame => curGame.id !== gameId));
-}
-function gameDataChangeHandler(data) {
-  this.setState(prevState => prevState.games.map(game =>
-    game.id === data.gameId ? data.gameData : game
-  ));
-}
-function gameListHandler(data) {
-  this.setState({games: data});
-}
-
-export default GameList;

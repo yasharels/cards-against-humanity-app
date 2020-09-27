@@ -2,7 +2,7 @@ const GameRoom = require('./GameRoom').GameRoom;
 const Player = require("./Player").Player;
 const {defaultGamePoint, defaultIdleTimer} = require('./config');
 
-exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
+exports.handleMessage = (socket, message) => {
   let data = message.payload;
   switch (message.event) {
     case 'login': {
@@ -39,8 +39,8 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
     }
     case 'getGameList': {
       let gameList = [];
-      gameRooms.forEach((room, id) => {
-        gameList.push({...{id}, ...room.getGameCardData()});
+      gameRooms.forEach(room => {
+        gameList.push(room.getGameInfoBoxData());
       });
       return socket.eventEmit('gameList', gameList);
     }
@@ -52,7 +52,6 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       let userRooms = users.get(name).gameRooms;
       if (userRooms.includes(id)) {
         room.joinSocket(name, socket);
-        room.players[name].joinSocket(socket);
         sockets.get(socket).gameRooms.push(id);
         return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
       }
@@ -63,6 +62,9 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
           userRooms.push(id);
           room.addPlayer(name, new Player());
           room.joinSocket(name, socket);
+          sockets.forEach((_, sock) => {
+            sock.eventEmit('gameDataChange', {gameId: id, gameData: {players: room.getAllPlayersList()}});
+          });
           return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
         }
         return socket.eventEmit('gameAccessDenied', {id});
@@ -71,6 +73,9 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       userRooms.push(id);
       room.addPlayer(name, new Player());
       room.joinSocket(name, socket);
+      sockets.forEach((_, sock) => {
+        sock.eventEmit('gameDataChange', {gameId: id, gameData: {players: room.getAllPlayersList()}});
+      });
       return socket.eventEmit('gameRoomData', {id, data: room.getGameRoomData(name)});
     }
     case 'leaveGameRoom': {
@@ -79,10 +84,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       if (!room || !room.joinedSockets.has(socket)) return;
       room.removeSocket(socket);
       let name = sockets.get(socket).name;
-      let userRooms = users.get(name).gameRooms;
-      let roomIdx = userRooms.indexOf(id);
-      userRooms.splice(roomIdx, 1);
-      roomIdx = sockets.get(socket).gameRooms.indexOf(id);
+      let roomIdx = sockets.get(socket).gameRooms.indexOf(id);
       return sockets.get(socket).gameRooms.splice(roomIdx, 1);
     }
     case 'getGameData': {
@@ -105,6 +107,9 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       };
       let room = new GameRoom(newGameId, sockets.get(socket).name, gameOptions);
       gameRooms.set(newGameId, room);
+      sockets.forEach((_, socket) => {
+        socket.eventEmit('newGame', room.getGameRoomData);
+      });
       return socket.eventEmit('gameRedirect', newGameId);
     }
     case 'setGamePass': {
@@ -167,6 +172,7 @@ exports.handleMessage = (socket, message, users, sockets, gameRooms) => {
       if (!room.gameData) return;
       room.submitWhiteCard(name, data.card);
     }
+    break;
     case 'chatMessage': {
       let id = parseInt(data.id);
       let room = gameRooms.get(id);
