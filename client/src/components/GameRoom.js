@@ -54,7 +54,7 @@ export default class GameRoom extends Component {
         <div id="gameroomTop"><LoginArea socket={this.props.socket} /></div>
         <div id="mainArea">{this.renderMainArea()}</div>
         <div id="gameroomBottom">
-          {this.props.scoreBoard ? <ScoreBoard scores={this.props.scoreBoard} /> : null}
+          {this.props.scoreBoard ? <ScoreBoard scores={this.props.scoreBoard} host={this.props.host} /> : null}
           <Chat id={this.id} socket={this.props.socket} name={this.props.name} chatLog={this.props.chatLog} />
         </div>
       </React.Fragment>
@@ -80,18 +80,17 @@ function whiteCardChosen (data) {
 class ScoreBoard extends Component {
   render() {
     const scoreData = this.props.scores;
-
     const rows = Object.entries(scoreData).map(([name, score], i) => (
-      <div class="scorecard" key={i}>
-          <div class="scoreboardName">{name}</div>
-          <div><span class="scoreboardPoints">{score}</span> points</div>
+      <div className="scorecard" key={i}>
+          <div className="scoreboardName">{name}</div>
+          <div><span className="scoreboardPoints">{score}</span> points {this.props.host === name && <span className="host">Host</span>} </div>
       </div>
     ));
 
     return (
       <React.Fragment>
-        <div class="scoreboard">
-          <div class="scoreboardTitle">Scoreboard</div>
+        <div className="scoreboard">
+          <div className="scoreboardTitle">Scoreboard</div>
           {rows}
         </div>
       </React.Fragment>

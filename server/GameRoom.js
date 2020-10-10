@@ -43,7 +43,15 @@ class GameRoom {
       this.joinedSockets.delete(socket);
       player.removeSocket(socket);
       this.savedPlayerData[name] = player;
-      delete this.players[name];
+      if (this.host === name) {
+        delete this.players[name];
+        let names = Object.keys(this.players);
+        this.host = names[Math.floor(Math.random() * names.length)];
+        this.joinedSockets.forEach((_, socket) => {
+          socket.eventEmit('gameRoomData', {id: this.id, data: {host: this.host}});
+        });
+      }
+      else delete this.players[name];
       return true;
     }
     this.joinedSockets.delete(socket);

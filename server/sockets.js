@@ -108,7 +108,7 @@ exports.handleMessage = (socket, message) => {
       let room = new GameRoom(newGameId, sockets.get(socket).name, gameOptions);
       gameRooms.set(newGameId, room);
       sockets.forEach((_, socket) => {
-        socket.eventEmit('newGame', room.getGameRoomData);
+        socket.eventEmit('newGame', room.getGameInfoBoxData());
       });
       return socket.eventEmit('gameRedirect', newGameId);
     }

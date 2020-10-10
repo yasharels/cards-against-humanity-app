@@ -16,7 +16,9 @@ export default class GameList extends Component {
   };
 
   newGameHandler(gameData) {
-    this.setState(() => [...this.state.gamesData, gameData]);
+    this.setState({
+      gamesData: [...this.state.gamesData, gameData]
+    });
   }
   deleteGameHandler(gameId) {
     this.setState({
