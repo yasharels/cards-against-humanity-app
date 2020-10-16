@@ -46,6 +46,7 @@ class GameRoom {
       if (this.host === name) {
         delete this.players[name];
         let names = Object.keys(this.players);
+        if (names.length < 1) return;
         this.host = names[Math.floor(Math.random() * names.length)];
         this.joinedSockets.forEach((_, socket) => {
           socket.eventEmit('gameRoomData', {id: this.id, data: {host: this.host}});

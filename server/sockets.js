@@ -83,7 +83,15 @@ exports.handleMessage = (socket, message) => {
       let room = gameRooms.get(id);
       if (!room || !room.joinedSockets.has(socket)) return;
       room.removeSocket(socket);
+      if (Object.keys(room.players).length < 1) {
+        gameRooms.delete(id);
+        sockets.forEach((_, sock) => {
+          sock.eventEmit('deleteGame', id);
+        });
+      }
       let name = sockets.get(socket).name;
+      let user = users.get(name);
+      user.gameRooms.splice(user.gameRooms.indexOf(id, 1));
       let roomIdx = sockets.get(socket).gameRooms.indexOf(id);
       return sockets.get(socket).gameRooms.splice(roomIdx, 1);
     }
